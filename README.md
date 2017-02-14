@@ -1,7 +1,7 @@
 # brocade-adx-client
 
 [![GoDoc](https://godoc.org/github.com/josh5276/brocade-adx-client/brocade?status.png)](http://godoc.org/github.com/josh5276/brocade-adx-client/brocade)
-[![License](https://img.shields.io/github/license/mashape/apistatus.svg?style=flat)](https://github.com/josh5276/brocade-adx-client/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/josh5276/brocade-adx-client/blob/master/LICENSE)
 
 The brocade-adx-client is a GoLang client library to interface with a Brocade ServerIron ADX via the SOAP API
 
