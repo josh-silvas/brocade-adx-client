@@ -1,6 +1,10 @@
-package brocade
+package adc
 
-import "testing"
+import (
+	"testing"
+	"github.com/josh5276/brocade-adx-client/brocade/sys"
+)
+
 
 var (
 	// user/password need to be valid ACS credentials to
@@ -15,11 +19,7 @@ func TestADXSoapClient_TestAuth(t *testing.T) {
 		t.Fatal("Username a password must be provided to run tests")
 	}
 	t.Logf("Testing connectivity with the ServerIron SOAP client using  %v", user)
-	adx, err := NewSOAPClient(adxip, user, passwd)
-	if err != nil {
-		t.Error(err)
-	}
-	resp, err := adx.TestAuth()
+	resp, err := TestAuth(NewSOAPClient(adxip, user, passwd))
 	if err != nil {
 		t.Error(err)
 	}
@@ -31,11 +31,8 @@ func TestADXSoapClient_Sys(t *testing.T) {
 		t.Fatal("Username a password must be provided to run tests")
 	}
 	t.Logf("Testing connectivity with the ServerIron SOAP client using  %v", user)
-	adx, err := NewSOAPClient(adxip, user, passwd)
-	if err != nil {
-		t.Error(err)
-	}
-	resp, code, err := adx.Sys("getChassis")
+	s := sys.New(NewSOAPClient(adxip, user, passwd))
+	resp, code, err := s.Sys("getChassis")
 	if err != nil {
 		t.Error(err, code)
 	}
@@ -47,12 +44,9 @@ func BenchmarkADXSoapClient_Sys(b *testing.B) {
 		b.Fatal("Username a password must be provided to run benchmark")
 	}
 	b.Logf("Benchmark testing the ServerIron SOAP client using  %v", user)
-	adx, err := NewSOAPClient(adxip, user, passwd)
-	if err != nil {
-		b.Error(err)
-	}
+	s := sys.New(NewSOAPClient(adxip, user, passwd))
 	for i := 0; i < b.N; i++ {
-		resp, code, err := adx.Sys("getChassis")
+		resp, code, err := s.Sys("getChassis")
 		if err != nil {
 			b.Fatal(err, code)
 		}
@@ -66,12 +60,9 @@ func BenchmarkADXSoapClient_Sys_RunningConfig(b *testing.B) {
 		b.Fatal("Username a password must be provided to run benchmark")
 	}
 	b.Logf("Benchmark testing the ServerIron SOAP client using  %v", user)
-	adx, err := NewSOAPClient(adxip, user, passwd)
-	if err != nil {
-		b.Error(err)
-	}
+	s := sys.New(NewSOAPClient(adxip, user, passwd))
 	for i := 0; i < b.N; i++ {
-		resp, code, err := adx.Sys("getRunningConfig")
+		resp, code, err := s.Sys("getRunningConfig")
 		if err != nil {
 			b.Fatal(err, code)
 		}
