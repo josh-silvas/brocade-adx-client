@@ -1,4 +1,4 @@
-package adx
+package brocade
 
 import (
 	"fmt"
@@ -9,7 +9,8 @@ import (
 
 	"errors"
 
-	"github.rackspace.com/NSI/spacedock/tools/webutil"
+	"github.com/josh5276/brocade-adx-client/webutil"
+	"github.com/josh5276/brocade-adx-client/adx/sys"
 )
 
 // A Client manages communication with the ADX API.
@@ -33,7 +34,7 @@ func NewSOAPClient(ip, username, password string) (*ADXSoapClient, error) {
 // TestAuth method is designed to connect to an ServerIron ADX and return the current
 // running version.  Call will also return the fault ID if login was unsuccessful.
 func (adx *ADXSoapClient) TestAuth() (string, error) {
-	r, code, err := adx.Sys("getVersion")
+	r, code, err := sys.Sys("getVersion")
 	if err != nil {
 		return "", err
 	}

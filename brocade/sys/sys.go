@@ -8,7 +8,8 @@ import (
 	"bytes"
 
 	"errors"
-	"github.rackspace.com/NSI/spacedock/tools/webutil"
+	"github.com/josh5276/brocade-adx-client/webutil"
+	"github.com/josh5276/brocade-adx-client/brocade"
 )
 
 
@@ -36,7 +37,7 @@ func (adx *adx.ADXSoapClient) TestAuth() (string, error) {
 
 // Sys method will display and configure basic system management functions on the
 // ServerIron ADX device. Initialize with an ADX struct, then call with a sys call.
-func (adx *ADXSoapClient) Sys(method string) (*Envelope, int, error) {
+func (adx *adx.ADXSoapClient) Sys(method string) (*Envelope, int, error) {
 	payload, err := xmlGetMarshal(method)
 	if err != nil {
 		return nil, 0, err
@@ -54,7 +55,7 @@ func (adx *ADXSoapClient) Sys(method string) (*Envelope, int, error) {
 
 // Sys method will display and configure basic system management functions on the
 // ServerIron ADX device. Initialize with an ADX struct, then call with a sys call.
-func (adx *ADXSoapClient) SysRunCli(commands []string) (*Envelope, int, error) {
+func (adx *adx.ADXSoapClient) SysRunCli(commands []string) (*Envelope, int, error) {
 	s := &RunCliRequest{
 		Soap: "http://schemas.xmlsoap.org/soap/envelope/",
 		RunCLI: RunCliCommands{
