@@ -2,14 +2,8 @@ package brocade
 
 import (
 	"fmt"
-
-	"encoding/xml"
-
-	"bytes"
-
 	"errors"
 
-	"github.com/josh5276/brocade-adx-client/webutil"
 	"github.com/josh5276/brocade-adx-client/brocade/sys"
 )
 
@@ -25,16 +19,17 @@ type ADXSoapClient struct {
 // to pass to the appliance
 func NewSOAPClient(ip, username, password string) (*ADXSoapClient, error) {
 	return &ADXSoapClient{
-		baseURL: fmt.Sprintf("https://%v", ip),
-		user:    username,
-		passwd:  password,
+		URL: fmt.Sprintf("https://%v", ip),
+		User:    username,
+		Passwd:  password,
 	}, nil
 }
 
 // TestAuth method is designed to connect to an ServerIron ADX and return the current
 // running version.  Call will also return the fault ID if login was unsuccessful.
-func (adx *ADXSoapClient) TestAuth() (string, error) {
-	r, code, err := adx.Sys("getVersion")
+func TestAuth(adx *ADXSoapClient) (string, error) {
+	s := sys.New(adx)
+	r, code, err := s.Sys("getVersion")
 	if err != nil {
 		return "", err
 	}

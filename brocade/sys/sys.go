@@ -18,27 +18,6 @@ func New(a brocade.ADXSoapClient) Sys {
 	}
 }
 
-// TestAuth method is designed to connect to an ServerIron ADX and return the current
-// running version.  Call will also return the fault ID if login was unsuccessful.
-func (s Sys) TestAuth() (string, error) {
-	r, code, err := s.Sys("getVersion")
-	if err != nil {
-		return "", err
-	}
-	if code == 403 {
-		return "", fmt.Errorf("Invalid username or password: Unauthorized %v", code)
-	}
-	if code != 200 {
-		return "", fmt.Errorf("Non 200 Code received from the ServerIron ADX: %v", code)
-	}
-	if r.Body.Msg != nil {
-		return "", errors.New(r.Body.Msg.FaultId)
-	}
-	if r.Body.Version == nil {
-		return "", errors.New("Unable to determine version")
-	}
-	return r.Body.Version.Version, nil
-}
 
 // Sys method will display and configure basic system management functions on the
 // ServerIron ADX device. Initialize with an ADX struct, then call with a sys call.
@@ -61,14 +40,14 @@ func (s Sys) Sys(method string) (*Sys, int, error) {
 // Sys method will display and configure basic system management functions on the
 // ServerIron ADX device. Initialize with an ADX struct, then call with a sys call.
 func (s Sys) SysRunCli(commands []string) (*Sys, int, error) {
-	s := &RunCliRequest{
+	sys := &RunCliRequest{
 		Soap: "http://schemas.xmlsoap.org/soap/envelope/",
 		RunCLI: RunCliCommands{
 			Tns:            "urn:webservicesapi",
 			StringSequence: commands,
 		},
 	}
-	payload := webutil.XMLMarshalHead(s)
+	payload := webutil.XMLMarshalHead(sys)
 	if payload == "" {
 		return nil, 0, errors.New("Unable to successfully marshal a XML request")
 	}
