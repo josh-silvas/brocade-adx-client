@@ -1,11 +1,15 @@
 package sys
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"github.com/josh5276/brocade-adx-client/brocade"
+)
 
 
-type Envelope struct {
+type Sys struct {
 	xmlName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
 	Body    SoapBody
+	adx     brocade.ADXSoapClient
 }
 type SoapBody struct {
 	xmlName        struct{} `xml:"http://schemas.xmlsoap.org/soap/envelope/ Body"`
