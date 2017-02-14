@@ -1,4 +1,4 @@
-package webutil
+package soap
 
 import (
 	"bytes"
@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"encoding/xml"
+	"strings"
+	"encoding/json"
 )
 
 //BasicAuthGet adds basic auth and perform a request to path
@@ -99,49 +102,6 @@ func XMLGetRequest(request *http.Request) ([]byte, int, error) {
 	return GetRequest(request, true)
 }
 
-//JSONAuthGet performs a request with basic auth and application/json
-func JSONAuthGet(path, username, password string) ([]byte, int, error) {
-	request, err := BasicAuthRequest(path, username, password)
-	if err != nil {
-		return nil, 0, err
-	}
-	request.Header.Set("accept", "application/json")
-	return GetRequest(request, true)
-}
-
-//JSONGet performs a request with the application/json header
-func JSONGet(path string, headers map[string]string, insecure bool) ([]byte, int, error) {
-	request, err := http.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, 0, err
-	}
-	for k, v := range headers {
-		request.Header.Set(k, v)
-	}
-	request.Header.Set("accept", "application/json")
-	return GetRequest(request, insecure)
-}
-
-//JSONGetClose performs a request with application/json header and the connection close header
-func JSONGetClose(path string, headers map[string]string, insecure bool) ([]byte, int, error) {
-	request, err := http.NewRequest("GET", path, nil)
-	if err != nil {
-		return nil, 0, err
-	}
-	for k, v := range headers {
-		request.Header.Set(k, v)
-	}
-	request.Header.Set("accept", "application/json")
-	request.Header.Set("Connection", "close")
-	return GetRequest(request, insecure)
-}
-
-//JSONGetRequest performs a get request and sets the application/json header to accept
-func JSONGetRequest(request *http.Request) ([]byte, int, error) {
-	request.Header.Set("accept", "application/json")
-	return GetRequest(request, true)
-}
-
 //ResponseCheck reads the response and return data, status code or error it encountered.
 func ResponseCheck(response *http.Response) ([]byte, int, error) {
 	defer response.Body.Close()
@@ -171,15 +131,6 @@ func Post(payload []byte, path string, headers map[string]string, insecure bool)
 	return ResponseCheck(resp)
 }
 
-//JSONPost will porform a post request with the data provided, it will add content-type header json to the header map.
-func JSONPost(payload []byte, path string, headers map[string]string, insecure bool) ([]byte, int, error) {
-	if headers == nil {
-		headers = make(map[string]string)
-	}
-	headers["Content-Type"] = "application/json"
-	return Post(payload, path, headers, insecure)
-}
-
 //XMLPost will porform a post request with the data provided, it will add content-type header xml to the header map.
 func XMLPost(payload []byte, path string, headers map[string]string, insecure bool) ([]byte, int, error) {
 	if headers == nil {
@@ -187,4 +138,52 @@ func XMLPost(payload []byte, path string, headers map[string]string, insecure bo
 	}
 	headers["Content-Type"] = "application/xml"
 	return Post(payload, path, headers, insecure)
+}
+
+// generic response writter for APIs
+type Response map[string]interface{}
+
+//This method returns a xml marshaled response
+func (r Response) XML() string {
+	b, err := xml.MarshalIndent(r, "", "  ")
+	if err != nil {
+		return ""
+	}
+	return strings.Replace(string(b), "%", "%%", -1)
+}
+
+// XMLWithHeader will take a structure and xml marshal with
+// the <?xml version="1.0" encoding="UTF-8"?> header prepended
+// to the XML request.
+func XMLMarshalHead(r interface{}) string {
+	rv := []byte(xml.Header)
+	b, err := xml.MarshalIndent(r, "", "  ")
+	if err != nil {
+		return ""
+	}
+	rv = append(rv, b...)
+	return strings.Replace(string(rv), "\\\"", "\"", -1)
+}
+
+//This method returns a json marshaled response
+func (r Response) String() string {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	}
+	return strings.Replace(string(b), "%", "%%", -1)
+}
+
+//returns the resp map as a xml string with the error code provided
+func XMLErrHandler(w http.ResponseWriter, r *http.Request, resp Response, code int) {
+	w.Header().Set("Content-Type", "application/xml")
+	http.Error(w, resp.XML(), code)
+	return
+}
+
+//returns the resp map as a xml string with a 200 OK
+func XMLResHandler(w http.ResponseWriter, r *http.Request, resp Response) {
+	w.Header().Set("Content-Type", "application/xml")
+	fmt.Fprintf(w, resp.XML())
+	return
 }

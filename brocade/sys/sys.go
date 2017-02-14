@@ -8,25 +8,24 @@ import (
 	"bytes"
 
 	"errors"
-	"github.com/josh5276/brocade-adx-client/webutil"
 	"github.com/josh5276/brocade-adx-client/brocade"
+	"github.com/josh5276/brocade-adx-client/brocade/soap"
 )
 
-func New(a brocade.ADXSoapClient) Sys {
-	return Sys{
-		adx: a,
+func New(a adc.ADCSoapClient) SYS {
+	return SYS{
+		adc: a,
 	}
 }
 
-
 // Sys method will display and configure basic system management functions on the
 // ServerIron ADX device. Initialize with an ADX struct, then call with a sys call.
-func (s Sys) Sys(method string) (*Sys, int, error) {
+func (s SYS) Sys(method string) (*SYS, int, error) {
 	payload, err := xmlGetMarshal(method)
 	if err != nil {
 		return nil, 0, err
 	}
-	resp, code, err := webutil.XMLADXBasicAuthPost(s.adx.URL+"/WS/SYS", method, payload, s.adx.User, s.adx.Passwd)
+	resp, code, err := soap.XMLADXBasicAuthPost(s.adc.URL+"/WS/SYS", method, payload, s.adc.User, s.adc.Passwd)
 	if err != nil {
 		return nil, code, fmt.Errorf("XMLADXBasicAuthPost Error: %s", err.Error())
 	}
@@ -39,7 +38,7 @@ func (s Sys) Sys(method string) (*Sys, int, error) {
 
 // Sys method will display and configure basic system management functions on the
 // ServerIron ADX device. Initialize with an ADX struct, then call with a sys call.
-func (s Sys) SysRunCli(commands []string) (*Sys, int, error) {
+func (s SYS) SysRunCli(commands []string) (*SYS, int, error) {
 	sys := &RunCliRequest{
 		Soap: "http://schemas.xmlsoap.org/soap/envelope/",
 		RunCLI: RunCliCommands{
@@ -47,11 +46,11 @@ func (s Sys) SysRunCli(commands []string) (*Sys, int, error) {
 			StringSequence: commands,
 		},
 	}
-	payload := webutil.XMLMarshalHead(sys)
+	payload := soap.XMLMarshalHead(sys)
 	if payload == "" {
 		return nil, 0, errors.New("Unable to successfully marshal a XML request")
 	}
-	resp, code, err := webutil.XMLADXBasicAuthPost(s.adx.URL+"/WS/SYS", "runCLI", payload, s.adx.User, s.adx.Passwd)
+	resp, code, err := soap.XMLADXBasicAuthPost(s.adc.URL+"/WS/SYS", "runCLI", payload, s.adc.User, s.adc.Passwd)
 	if err != nil {
 		return nil, code, fmt.Errorf("XMLADXBasicAuthPost Error: %s", err.Error())
 	}
@@ -62,28 +61,32 @@ func (s Sys) SysRunCli(commands []string) (*Sys, int, error) {
 	return e, code, nil
 }
 
-// Slb method will display and configure basic system management functions on the
-// ServerIron ADX device. Initialize with an ADX struct, then call with a sys call.
-func (s Sys) Slb(method string) (*Sys, int, error) {
-	payload, err := xmlGetMarshal(method)
+// TestAuth method is designed to connect to an ServerIron ADX and return the current
+// running version.  Call will also return the fault ID if login was unsuccessful.
+func (s SYS) TestAuth() (string, error) {
+	r, code, err := s.Sys("getVersion")
 	if err != nil {
-		return nil, 0, err
+		return "", err
 	}
-	resp, code, err := webutil.XMLADXBasicAuthPost(s.adx.URL+"/WS/SLB", method, payload, s.adx.User, s.adx.Passwd)
-	if err != nil {
-		return nil, code, fmt.Errorf("XMLADXBasicAuthPost Error: %s", err.Error())
+	if code == 403 {
+		return "", fmt.Errorf("Invalid username or password: Unauthorized %v", code)
 	}
-	e, err := xmlUnmarshal(resp)
-	if err != nil {
-		return nil, code, err
+	if code != 200 {
+		return "", fmt.Errorf("Non 200 Code received from the ServerIron ADX: %v", code)
 	}
-	return e, code, nil
+	if r.Body.Msg != nil {
+		return "", errors.New(r.Body.Msg.FaultId)
+	}
+	if r.Body.Version == nil {
+		return "", errors.New("Unable to determine version")
+	}
+	return r.Body.Version.Version, nil
 }
 
 // xmlUnmarshal function will take a byte array and formulate a SOAP Envelope
 // structure.  Return values will be the Envelope pointer value and error.
-func xmlUnmarshal(resp []byte) (*Sys, error) {
-	var e Sys
+func xmlUnmarshal(resp []byte) (*SYS, error) {
+	var e SYS
 	parser := xml.NewDecoder(bytes.NewBuffer(resp))
 	err := parser.DecodeElement(&e, nil)
 	if err != nil {

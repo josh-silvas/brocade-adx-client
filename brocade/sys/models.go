@@ -6,12 +6,12 @@ import (
 )
 
 
-type Sys struct {
+type SYS struct {
 	xmlName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
-	Body    SoapBody
-	adx     brocade.ADXSoapClient
+	Body    Body
+	adc     adc.ADCSoapClient
 }
-type SoapBody struct {
+type Body struct {
 	xmlName        struct{} `xml:"http://schemas.xmlsoap.org/soap/envelope/ Body"`
 	Version        *GetVersion
 	Chassis        *GetChassis
@@ -19,7 +19,6 @@ type SoapBody struct {
 	CPU            *GetCPU
 	RunningConfig  *GetRunningConfig
 	Flash          *GetFlash
-	VirtualSummary *GetVirtualSummary
 	Cli            *RunCLI
 	Msg            *Fault
 }
@@ -147,51 +146,6 @@ type RunCLI struct {
 		Output  string `xml:"output"`
 	} `xml:"result>ResultSequence"`
 	Tns string `xml:"tns,attr"`
-}
-
-// /WS/SYS Related structures.
-type GetVirtualSummary struct {
-	XMLName xml.Name `xml:"getAllVirtualServerSummaryResponse"`
-	Virtual []struct {
-		AdminState                string `xml:"ports>VirtualServerPortSummarySequence>adminState"`
-		CurrentConnection         string `xml:"ports>VirtualServerPortSummarySequence>currentConnection"`
-		PortTxPktsRate            string `xml:"ports>VirtualServerPortSummarySequence>txPktsRate"`
-		Name                      string `xml:"server>Name"`
-		IP                        string `xml:"server>IP"`
-		RxPktsRate                string `xml:"rxPktsRate"`
-		TotalConn                 string `xml:"totalConn"`
-		CustomHealthCheck         string `xml:"ports>VirtualServerPortSummarySequence>customHealthCheck"`
-		VirtualServerPortNameSrvr string `xml:"ports>VirtualServerPortSummarySequence>virtualServerPort>srvr>Name"`
-		Predictor                 string `xml:"Predictor"`
-		CurrentConnRate           string `xml:"currentConnRate"`
-		TotalPorts                string `xml:"totalPorts"`
-		VirtualTxPktsRate         string `xml:"txPktsRate"`
-		PortSequence              struct {
-			Index string `xml:"index,attr"`
-		}
-		RunTimeStatus           string `xml:"ports>VirtualServerPortSummarySequence>runTimeStatus"`
-		RxBytes                 string `xml:"rxBytes"`
-		SymmetricPriority       string `xml:"symmetricPriority"`
-		EnableSticky            string `xml:"ports>VirtualServerPortSummarySequence>enableSticky"`
-		RcvPkts                 string `xml:"rcvPkts"`
-		CurrentConnections      string `xml:"currentConnections"`
-		EnableDsr               string `xml:"ports>VirtualServerPortSummarySequence>enableDsr"`
-		IsConcurrent            string `xml:"ports>VirtualServerPortSummarySequence>isConcurrent"`
-		TcpOnly                 string `xml:"ports>VirtualServerPortSummarySequence>tcpOnly"`
-		VirtualServerPortIPSrvr string `xml:"ports>VirtualServerPortSummarySequence>virtualServerPort>srvr>IP"`
-		NameOrNumber            string `xml:"ports>VirtualServerPortSummarySequence>virtualServerPort>port>NameOrNumber"`
-		TxPkts                  string `xml:"txPkts"`
-		TxBytes                 string `xml:"txBytes"`
-		Stateless               string `xml:"ports>VirtualServerPortSummarySequence>Stateless"`
-		UdpOnly                 string `xml:"ports>VirtualServerPortSummarySequence>udpOnly"`
-		VirtualSequence         struct {
-			Index string `xml:"index,attr"`
-		}
-		Tns               string   `xml:"tns,attr"`
-		RunTimeState      string   `xml:"runTimeState"`
-		PortRxPktsRate    []string `xml:"ports>VirtualServerPortSummarySequence>rxPktsRate"`
-		VirtualAdminState string   `xml:"adminState"`
-	} `xml:"virtualServerSummary>VirtualServerSummarySequence"`
 }
 
 type XmlGet struct {
