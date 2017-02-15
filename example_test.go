@@ -2,11 +2,12 @@ package main
 
 import (
 	"testing"
-	"github.com/josh5276/brocade-adx-client/brocade/sys"
-	"github.com/josh5276/brocade-adx-client/brocade"
-	"github.com/josh5276/brocade-adx-client/brocade/slb"
-)
 
+	"github.com/josh5276/brocade-adx-client/brocade"
+	"github.com/josh5276/brocade-adx-client/brocade/net"
+	"github.com/josh5276/brocade-adx-client/brocade/slb"
+	"github.com/josh5276/brocade-adx-client/brocade/sys"
+)
 
 var (
 	// user/password need to be valid ACS credentials to
@@ -15,6 +16,19 @@ var (
 	passwd = ""
 	adxip  = ""
 )
+
+func TestADXSoapClient_NET(t *testing.T) {
+	if user == "" || passwd == "" {
+		t.Fatal("Username a password must be provided to run tests")
+	}
+	t.Logf("Testing connectivity with the ServerIron SOAP client using  %v", user)
+	n := net.New(adc.NewSOAPClient(adxip, user, passwd))
+	resp, _, err := n.GetInterfaceConfig("10", "virtual")
+	if err != nil {
+		t.Error(err)
+	}
+	t.Logf("Successful response from the ADX. ve10 Mac Addr: %v", resp.Body.InterfaceConfig.IntConfigSeq.MacAddress)
+}
 
 func TestADXSoapClient_TestAuth(t *testing.T) {
 	if user == "" || passwd == "" {
